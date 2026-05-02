@@ -693,8 +693,14 @@ window.handleFootwearSubmit = async function (e) {
   const btn = document.getElementById('submit-entry-btn');
   const errorEl = document.getElementById('form-error');
   errorEl.classList.add('hidden');
-  btn.classList.add('loading');
 
+  if (selectedSizes.length === 0) {
+    errorEl.textContent = 'Please select at least one size.';
+    errorEl.classList.remove('hidden');
+    return;
+  }
+
+  btn.classList.add('loading');
   try {
     const formData = new FormData();
     formData.append('modelNumber', document.getElementById('fw-modelNumber').value.trim());

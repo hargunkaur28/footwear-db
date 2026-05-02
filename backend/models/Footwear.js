@@ -33,10 +33,16 @@ const footwearSchema = new mongoose.Schema({
     required: [true, 'Price is required'],
     min: 0,
   },
-  size: [{
-    type: String,
-    trim: true,
-  }],
+  size: {
+    type: [String],
+    required: [true, 'At least one size is required'],
+    validate: {
+      validator: function(v) {
+        return v && v.length > 0;
+      },
+      message: 'At least one size is required'
+    }
+  },
   material: {
     type: String,
     trim: true,
