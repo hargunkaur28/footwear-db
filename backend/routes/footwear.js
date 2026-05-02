@@ -3,34 +3,30 @@ const multer = require('multer');
 const path = require('path');
 const Footwear = require('../models/Footwear');
 const auth = require('../middleware/auth');
+const cloudinary = require('cloudinary').v2;
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const router = express.Router();
 
-// Multer config for image uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, '..', 'uploads'));
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
-  },
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key:    process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-const fileFilter = (req, file, cb) => {
-  const allowedTypes = /jpeg|jpg|png|gif|webp/;
-  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = allowedTypes.test(file.mimetype);
-  if (extname && mimetype) {
-    cb(null, true);
-  } else {
-    cb(new Error('Only image files are allowed!'), false);
+// Configure Cloudinary Storage for Multer
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'footwear_db',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'gif'],
+    transformation: [{ width: 1000, height: 1000, crop: 'limit' }]
   }
-};
+});
 
-const upload = multer({
-  storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB per file
-  fileFilter,
+const upload = multer({ 
+  storage: storage,
+  limits: { fileSize: 5 * 1024 * 1024 } // 5MB
 });
 
 // POST /api/footwear - Create new footwear entry
@@ -44,7 +40,8 @@ router.post('/', auth, (req, res, next) => {
   });
 }, async (req, res) => {
   try {
-    const images = req.files ? req.files.map(f => `/uploads/${f.filename}`) : [];
+    // Cloudinary returns the full URL in f.path
+    const images = req.files ? req.files.map(f => f.path) : [];
 
     // Build the document explicitly (avoid spreading unknown fields)
     const footwear = await Footwear.create({
@@ -87,12 +84,12 @@ router.put('/:id', auth, (req, res, next) => {
     let footwear = await Footwear.findOne(query);
     if (!footwear) return res.status(404).json({ message: 'Footwear not found or unauthorized' });
 
-    // Handle images: keep existing or add new
+    // Handle images: keep existing or add new from Cloudinary
     let images = footwear.images;
     if (req.body.replaceImages === 'true' && req.files) {
-      images = req.files.map(f => `/uploads/${f.filename}`);
+      images = req.files.map(f => f.path);
     } else if (req.files && req.files.length > 0) {
-      images = [...images, ...req.files.map(f => `/uploads/${f.filename}`)];
+      images = [...images, ...req.files.map(f => f.path)];
     }
 
     footwear.modelNumber = req.body.modelNumber || footwear.modelNumber;

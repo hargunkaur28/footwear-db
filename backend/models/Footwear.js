@@ -14,7 +14,6 @@ const footwearSchema = new mongoose.Schema({
   category: {
     type: String,
     required: [true, 'Category is required'],
-    enum: ['Shoes', 'Sandals', 'Boots', 'Slippers', 'Loafers'],
   },
   subCategory: {
     type: String,
