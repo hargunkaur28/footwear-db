@@ -474,10 +474,17 @@ window.saveCustomOption = async function (field) {
       await api(`/options/${field}`, { method: 'POST', body: JSON.stringify({ value }) });
       showToast(`"${value}" saved to ${field}!`, 'success');
       cancelCustomInput(field);
-      // Reload all options for this field from backend
-      const customs = await api(`/options/${field}`);
-      await buildSmartSelect(field, `fw-${field}`, customs);
-      document.getElementById(`fw-${field}`).value = value;
+      
+      if (field === 'size') {
+        if (!selectedSizes.includes(value)) {
+          selectedSizes.push(value);
+        }
+        renderSizeGrid();
+      } else {
+        const customs = await api(`/options/${field}`);
+        await buildSmartSelect(field, `fw-${field}`, customs);
+        document.getElementById(`fw-${field}`).value = value;
+      }
     }
   } catch (err) {
     showToast(err.message, 'error');
@@ -524,19 +531,38 @@ window.removeColor = function(val) {
   renderTags('color', selectedColors);
 };
 
-window.addSizeFromSelect = function() {
-  const select = document.getElementById('fw-size');
-  const val = select.value;
-  if (val && !selectedSizes.includes(val)) {
+window.toggleSize = function(val) {
+  if (selectedSizes.includes(val)) {
+    selectedSizes = selectedSizes.filter(s => s !== val);
+  } else {
     selectedSizes.push(val);
-    renderTags('size', selectedSizes);
   }
-  select.value = '';
+  renderSizeGrid();
 };
+
+function renderSizeGrid() {
+  const grid = document.getElementById('size-selector-grid');
+  if (!grid) return;
+  
+  // Clear and rebuild
+  const commonSizes = ['UK 6', 'UK 7', 'UK 8', 'UK 9', 'UK 10', 'UK 11', 'UK 12', 'EU 40', 'EU 41', 'EU 42', 'EU 43', 'EU 44', 'EU 45'];
+  
+  // Add any selected custom sizes that aren't in commonSizes
+  const allToDisplay = [...new Set([...commonSizes, ...selectedSizes])].sort((a,b) => {
+    // Basic sorting: UK first, then numbers
+    return a.localeCompare(b, undefined, {numeric: true, sensitivity: 'base'});
+  });
+
+  grid.innerHTML = allToDisplay.map(size => `
+    <div class="size-chip ${selectedSizes.includes(size) ? 'active' : ''}" onclick="toggleSize('${size}')">
+      ${size}
+    </div>
+  `).join('');
+}
 
 window.removeSize = function(val) {
   selectedSizes = selectedSizes.filter(s => s !== val);
-  renderTags('size', selectedSizes);
+  renderSizeGrid();
 };
 
 // ========================================
@@ -554,7 +580,7 @@ window.openFormModal = async function () {
   selectedColors = [];
   selectedSizes = [];
   renderTags('color', selectedColors);
-  renderTags('size', selectedSizes);
+  renderSizeGrid();
 
   // Reset all custom input boxes
   ['brand', 'category', 'color', 'size', 'material', 'subCategory'].forEach(f => {
@@ -568,7 +594,6 @@ window.openFormModal = async function () {
     buildBrandSelect(),
     api('/options/category').then(c => buildSmartSelect('category', 'fw-category', c)).catch(()=>{}),
     api('/options/color').then(c => buildSmartSelect('color', 'fw-color', c)).catch(()=>{}),
-    api('/options/size').then(s => buildSmartSelect('size', 'fw-size', s)).catch(()=>{}),
     api('/options/material').then(m => buildSmartSelect('material', 'fw-material', m)).catch(()=>{}),
     api('/options/subCategory').then(s => buildSmartSelect('subCategory', 'fw-subCategory', s)).catch(()=>{}),
   ]);
@@ -594,7 +619,7 @@ window.editEntry = async function(id) {
   selectedColors = entry.color || [];
   selectedSizes = entry.size || [];
   renderTags('color', selectedColors);
-  renderTags('size', selectedSizes);
+  renderSizeGrid();
   
   // Show existing images in preview
   const container = document.getElementById('image-previews');
