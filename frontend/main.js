@@ -191,8 +191,8 @@ async function loadEntries() {
             <span class="entry-tag category">${entry.category}</span>
             <span class="entry-tag">${entry.subCategory}</span>
             <span class="entry-tag gender">${entry.gender}</span>
-            ${entry.color && entry.color.length ? entry.color.map(c => `<span class="entry-tag">${c}</span>`).join('') : ''}
-            ${entry.size && entry.size.length ? entry.size.map(s => `<span class="entry-tag">Size: ${s}</span>`).join('') : ''}
+            ${entry.color && entry.color.length ? `<span class="entry-tag">Colors: ${entry.color.join(', ')}</span>` : ''}
+            ${entry.size && entry.size.length ? `<span class="entry-tag">Sizes: ${entry.size.join(', ')}</span>` : ''}
           </div>
           ${entry.material ? `<div class="entry-meta">Material: ${entry.material}</div>` : ''}
           ${entry.description ? `<div class="entry-meta entry-desc">${entry.description}</div>` : ''}
