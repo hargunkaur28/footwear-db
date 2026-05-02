@@ -142,15 +142,99 @@ async function showDashboard() {
     : `Hi, ${currentUser.name}`;
     
   document.getElementById('user-greeting').innerHTML = greetingText;
+  
+  // Show/Hide admin filter group
+  const adminFilterGroup = document.getElementById('admin-filter-group');
+  if (adminFilterGroup) {
+    adminFilterGroup.classList.toggle('hidden', !currentUser.isAdmin);
+  }
+
+  initFilters();
   loadEntries();
 }
 
 // ========================================
+// Filters
+// ========================================
+async function initFilters() {
+  console.log('Initializing filters for user:', currentUser);
+  
+  // Brands
+  api('/brands').then(brands => {
+    const brandFilter = document.getElementById('filter-brand');
+    if (!brandFilter) return;
+    brandFilter.innerHTML = '<option value="">All Brands</option>';
+    brands.forEach(b => {
+      const opt = document.createElement('option');
+      opt.value = b.name; opt.textContent = b.name;
+      brandFilter.appendChild(opt);
+    });
+  }).catch(err => console.error('Error loading brand filters:', err));
+
+  // Categories
+  api('/options/category').then(categories => {
+    const catFilter = document.getElementById('filter-category');
+    if (!catFilter) return;
+    catFilter.innerHTML = '<option value="">All Categories</option>';
+    const standardCats = ['Shoes', 'Sandals', 'Boots', 'Slippers', 'Loafers'];
+    const allCats = [...new Set([...standardCats, ...categories])];
+    allCats.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c; opt.textContent = c;
+      catFilter.appendChild(opt);
+    });
+  }).catch(err => console.error('Error loading category filters:', err));
+
+  // Users (Admin only)
+  if (currentUser?.isAdmin) {
+    console.log('User is admin, fetching users list...');
+    api('/auth/users').then(users => {
+      console.log('Users found:', users);
+      const userFilter = document.getElementById('filter-user');
+      if (!userFilter) return;
+      userFilter.innerHTML = '<option value="">All Users</option>';
+      users.forEach(u => {
+        const opt = document.createElement('option');
+        opt.value = u._id; opt.textContent = u.name;
+        userFilter.appendChild(opt);
+      });
+    }).catch(err => console.error('Error loading user filters:', err));
+  }
+}
+
+window.applyFilters = function() {
+  const filters = {
+    brand: document.getElementById('filter-brand').value,
+    category: document.getElementById('filter-category').value,
+  };
+  
+  if (currentUser.isAdmin) {
+    filters.addedBy = document.getElementById('filter-user').value;
+  }
+  
+  loadEntries(filters);
+};
+
+window.resetFilters = function() {
+  document.getElementById('filter-brand').value = '';
+  document.getElementById('filter-category').value = '';
+  if (document.getElementById('filter-user')) {
+    document.getElementById('filter-user').value = '';
+  }
+  loadEntries();
+};
+
+// ========================================
 // Entries
 // ========================================
-async function loadEntries() {
+async function loadEntries(filters = {}) {
   try {
-    const entries = await api('/footwear');
+    const params = new URLSearchParams();
+    for (const [k, v] of Object.entries(filters)) {
+      if (v) params.append(k, v);
+    }
+    const query = params.toString() ? `?${params.toString()}` : '';
+    const entries = await api(`/footwear${query}`);
     const grid = document.getElementById('entries-grid');
     const emptyState = document.getElementById('empty-state');
     const entryCount = document.getElementById('entry-count');

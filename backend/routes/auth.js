@@ -74,4 +74,15 @@ router.get('/me', auth, async (req, res) => {
   res.json(req.user);
 });
 
+// GET /api/auth/users - Get all users (Admin only)
+router.get('/users', auth, async (req, res) => {
+  if (!req.user.isAdmin) return res.status(403).json({ message: 'Access denied' });
+  try {
+    const users = await User.find({}, 'name email').sort({ name: 1 });
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 module.exports = router;

@@ -115,16 +115,27 @@ router.put('/:id', auth, (req, res, next) => {
   }
 });
 
-// GET /api/footwear - Get all footwear entries
+// GET /api/footwear - Get footwear entries with filters
 router.get('/', auth, async (req, res) => {
   try {
-    // Admins see all, regular users see only their own
-    const query = req.user.isAdmin ? {} : { addedBy: req.user._id };
+    let query = {};
     
-    const footwear = await Footwear.find(query)
+    // If not admin, only show own entries
+    if (!req.user.isAdmin) {
+      query.addedBy = req.user._id;
+    } else if (req.query.addedBy) {
+      // Admin filtering by user
+      query.addedBy = req.query.addedBy;
+    }
+
+    // Common filters
+    if (req.query.brand) query.brand = req.query.brand;
+    if (req.query.category) query.category = req.query.category;
+
+    const entries = await Footwear.find(query)
       .sort({ createdAt: -1 })
       .populate('addedBy', 'name email');
-    res.json(footwear);
+    res.json(entries);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

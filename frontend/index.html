@@ -120,6 +120,28 @@
           </button>
         </div>
 
+        <div class="filter-bar">
+          <div class="filter-group">
+            <label>Brand</label>
+            <select id="filter-brand" onchange="applyFilters()">
+              <option value="">All Brands</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>Category</label>
+            <select id="filter-category" onchange="applyFilters()">
+              <option value="">All Categories</option>
+            </select>
+          </div>
+          <div id="admin-filter-group" class="filter-group hidden">
+            <label>Added By</label>
+            <select id="filter-user" onchange="applyFilters()">
+              <option value="">All Users</option>
+            </select>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="resetFilters()" style="margin-top:auto; height:38px;">Reset</button>
+        </div>
+
         <div id="entries-grid" class="entries-grid"></div>
         <div id="empty-state" class="empty-state hidden">
           <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
@@ -189,9 +211,9 @@
                 </div>
               </div>
               <div class="form-group">
-                <label for="fw-subCategory">Sub-Category <span class="required">*</span></label>
+                <label for="fw-subCategory">Sub-Category</label>
                 <div class="smart-select-row">
-                  <select id="fw-subCategory" required class="smart-select">
+                  <select id="fw-subCategory" class="smart-select">
                     <option value="">Select Sub-Category</option>
                   </select>
                   <button type="button" class="btn-plus" onclick="toggleCustomInput('subCategory')" id="subCategory-plus-btn" title="Add custom sub-category">+</button>

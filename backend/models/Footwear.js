@@ -17,7 +17,6 @@ const footwearSchema = new mongoose.Schema({
   },
   subCategory: {
     type: String,
-    required: [true, 'Sub-category is required'],
     trim: true,
   },
   gender: {
