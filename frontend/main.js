@@ -7,6 +7,7 @@ let token = localStorage.getItem('fw_token');
 let currentUser = null;
 let selectedFiles = [];
 let loadedEntries = [];
+let currentView = localStorage.getItem('fw_view') || 'grid';
 
 let selectedColors = [];
 let selectedSizes = [];
@@ -215,6 +216,19 @@ window.applyFilters = function() {
   loadEntries(filters);
 };
 
+window.switchView = function(view) {
+  currentView = view;
+  localStorage.setItem('fw_view', view);
+  
+  document.getElementById('view-grid-btn').classList.toggle('active', view === 'grid');
+  document.getElementById('view-list-btn').classList.toggle('active', view === 'list');
+  
+  const grid = document.getElementById('entries-grid');
+  if (grid) {
+    grid.classList.toggle('list-view', view === 'list');
+  }
+};
+
 window.resetFilters = function() {
   document.getElementById('filter-brand').value = '';
   document.getElementById('filter-category').value = '';
@@ -239,7 +253,12 @@ async function loadEntries(filters = {}) {
     const emptyState = document.getElementById('empty-state');
     const entryCount = document.getElementById('entry-count');
 
-    if (!entries.length) {
+    // Apply current view
+    grid.classList.toggle('list-view', currentView === 'list');
+    document.getElementById('view-grid-btn').classList.toggle('active', currentView === 'grid');
+    document.getElementById('view-list-btn').classList.toggle('active', currentView === 'list');
+
+    if (entries.length === 0) {
       grid.classList.add('hidden');
       emptyState.classList.remove('hidden');
       entryCount.textContent = 'No entries yet';
@@ -281,8 +300,9 @@ async function loadEntries(filters = {}) {
           ${entry.material ? `<div class="entry-meta">Material: ${entry.material}</div>` : ''}
           ${entry.description ? `<div class="entry-meta entry-desc">${entry.description}</div>` : ''}
           ${currentUser.isAdmin && entry.addedBy ? `<div class="entry-meta author-meta">Added by: ${entry.addedBy.name}</div>` : ''}
-          <div class="entry-card-footer">
-            <span class="entry-date">${new Date(entry.createdAt).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' })}</span>
+        </div>
+        <div class="entry-date">${new Date(entry.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+        <div class="entry-card-footer">
             <div class="entry-actions">
               <button class="entry-edit-btn" onclick="editEntry('${entry._id}')" title="Edit">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
