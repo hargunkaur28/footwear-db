@@ -251,9 +251,9 @@ async function loadEntries(filters = {}) {
           ${entry.description ? `<div class="entry-meta entry-desc">${entry.description}</div>` : ''}
           ${currentUser.isAdmin && entry.addedBy ? `<div class="entry-meta author-meta">Added by: ${entry.addedBy.name}</div>` : ''}
         </div>
-        <div class="entry-date">${new Date(entry.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
         <div class="entry-card-footer">
-            <div class="entry-actions">
+          <div class="entry-date">${new Date(entry.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+          <div class="entry-actions">
               <button class="entry-edit-btn" onclick="editEntry('${entry._id}')" title="Edit">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>

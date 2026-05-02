@@ -648,13 +648,29 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 0.75rem;
+  padding: 1rem 1.25rem;
   border-top: 1px solid var(--surface-border);
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .entry-date {
   font-size: 0.75rem;
   color: var(--text-muted);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  opacity: 0.8;
+}
+
+.entry-date::before {
+  content: '';
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  background: var(--primary);
+  border-radius: 50%;
+  opacity: 0.5;
 }
 
 .entry-meta {
