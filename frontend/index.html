@@ -33,8 +33,7 @@
 
         <div class="auth-card">
           <div class="auth-tabs">
-            <button id="login-tab" class="auth-tab active" onclick="switchAuthTab('login')">Sign In</button>
-            <button id="register-tab" class="auth-tab" onclick="switchAuthTab('register')">Sign Up</button>
+            <button id="login-tab" class="auth-tab active">Login</button>
           </div>
 
           <form id="login-form" class="auth-form active" onsubmit="handleLogin(event)">
@@ -47,33 +46,14 @@
               <input type="password" id="login-password" placeholder="••••••••" required />
             </div>
             <button type="submit" class="btn btn-primary btn-full" id="login-btn">
-              <span>Sign In</span>
+              <span>Login</span>
               <svg class="btn-arrow" width="20" height="20" viewBox="0 0 20 20" fill="none">
                 <path d="M4 10H16M16 10L11 5M16 10L11 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </button>
           </form>
 
-          <form id="register-form" class="auth-form" onsubmit="handleRegister(event)">
-            <div class="form-group">
-              <label for="register-name">Full Name</label>
-              <input type="text" id="register-name" placeholder="John Doe" required />
-            </div>
-            <div class="form-group">
-              <label for="register-email">Email</label>
-              <input type="email" id="register-email" placeholder="you@example.com" required />
-            </div>
-            <div class="form-group">
-              <label for="register-password">Password</label>
-              <input type="password" id="register-password" placeholder="Min 6 characters" required minlength="6" />
-            </div>
-            <button type="submit" class="btn btn-primary btn-full" id="register-btn">
-              <span>Create Account</span>
-              <svg class="btn-arrow" width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <path d="M4 10H16M16 10L11 5M16 10L11 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </button>
-          </form>
+
           <div id="auth-error" class="error-msg hidden"></div>
         </div>
       </div>

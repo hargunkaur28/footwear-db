@@ -23,4 +23,8 @@ This platform serves as a centralized hub for a client's footwear business. It e
 - **Cloud Media**: Cloudinary API.
 - **Authentication**: JSON Web Tokens (JWT).
 
+<<<<<<< HEAD
+=======
+---
+>>>>>>> 3c63ad7 (Change 'Sign In' to 'Login' and cleanup auth UI)
 *Created with ❤️ for professional footwear management.*

@@ -52,14 +52,6 @@ async function api(endpoint, options = {}) {
 // ========================================
 // Auth
 // ========================================
-window.switchAuthTab = function (tab) {
-  document.getElementById('login-tab').classList.toggle('active', tab === 'login');
-  document.getElementById('register-tab').classList.toggle('active', tab === 'register');
-  document.getElementById('login-form').classList.toggle('active', tab === 'login');
-  document.getElementById('register-form').classList.toggle('active', tab === 'register');
-  document.getElementById('auth-error').classList.add('hidden');
-};
-
 window.handleLogin = async function (e) {
   e.preventDefault();
   const btn = document.getElementById('login-btn');
@@ -83,29 +75,7 @@ window.handleLogin = async function (e) {
   }
 };
 
-window.handleRegister = async function (e) {
-  e.preventDefault();
-  const btn = document.getElementById('register-btn');
-  btn.classList.add('loading');
-  try {
-    const data = await api('/auth/register', {
-      method: 'POST',
-      body: JSON.stringify({
-        name: document.getElementById('register-name').value.trim(),
-        email: document.getElementById('register-email').value.trim(),
-        password: document.getElementById('register-password').value,
-      }),
-    });
-    token = data.token;
-    currentUser = data;
-    localStorage.setItem('fw_token', token);
-    showDashboard();
-  } catch (err) {
-    showAuthError(err.message);
-  } finally {
-    btn.classList.remove('loading');
-  }
-};
+
 
 window.handleLogout = function () {
   token = null; currentUser = null;
@@ -126,7 +96,6 @@ function showAuthPage() {
   document.getElementById('auth-page').classList.add('active');
   document.getElementById('dashboard-page').classList.remove('active');
   document.getElementById('login-form').reset();
-  document.getElementById('register-form').reset();
 }
 
 async function showDashboard() {
