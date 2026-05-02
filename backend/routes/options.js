@@ -6,7 +6,7 @@ const router = express.Router();
 // GET /api/options/:field — get all custom values for a field
 router.get('/:field', auth, async (req, res) => {
   const { field } = req.params;
-  const allowed = ['color', 'size', 'material'];
+  const allowed = ['color', 'size', 'material', 'subCategory', 'category'];
   if (!allowed.includes(field)) {
     return res.status(400).json({ message: 'Invalid field' });
   }
@@ -21,7 +21,7 @@ router.get('/:field', auth, async (req, res) => {
 // POST /api/options/:field — add a custom value
 router.post('/:field', auth, async (req, res) => {
   const { field } = req.params;
-  const allowed = ['color', 'size', 'material'];
+  const allowed = ['color', 'size', 'material', 'subCategory', 'category'];
   if (!allowed.includes(field)) {
     return res.status(400).json({ message: 'Invalid field' });
   }

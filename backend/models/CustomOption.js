@@ -5,7 +5,7 @@ const customOptionSchema = new mongoose.Schema({
   field: {
     type: String,
     required: true,
-    enum: ['color', 'size', 'material'],
+    enum: ['color', 'size', 'material', 'subCategory', 'category'],
   },
   value: {
     type: String,

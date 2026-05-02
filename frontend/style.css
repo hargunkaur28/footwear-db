@@ -491,6 +491,28 @@ body {
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  cursor: pointer;
+  position: relative;
+}
+
+.entry-card-image::after {
+  content: 'Click to view images';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  font-size: 0.75rem;
+  padding: 0.4rem;
+  text-align: center;
+  transform: translateY(100%);
+  transition: transform var(--transition-fast);
+  backdrop-filter: blur(4px);
+}
+
+.entry-card-image:hover::after {
+  transform: translateY(0);
 }
 
 .entry-card-image img {
@@ -601,6 +623,35 @@ body {
   color: var(--accent);
   font-weight: 500;
   margin-top: 0.5rem;
+}
+
+.entry-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.entry-delete-btn, .entry-edit-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.entry-delete-btn:hover {
+  color: white;
+  background: var(--danger);
+}
+
+.entry-edit-btn:hover {
+  color: white;
+  background: var(--primary);
 }
 
 .entry-delete-btn {
@@ -800,6 +851,39 @@ body {
   box-shadow: 0 0 0 3px var(--primary-light);
 }
 
+.selected-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.selected-tag {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--surface-border);
+  color: var(--text-primary);
+  padding: 0.3rem 0.6rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+}
+
+.selected-tag button {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.selected-tag button:hover {
+  color: var(--danger);
+}
+
 /* optgroup styling */
 select optgroup {
   color: var(--text-muted);
@@ -881,6 +965,77 @@ select optgroup {
 
 .image-preview:hover .remove-image {
   opacity: 1;
+}
+
+/* ========================================
+   Gallery Modal
+   ======================================== */
+.gallery-modal-content {
+  position: relative;
+  width: 100%;
+  max-width: 800px;
+  max-height: 95vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: var(--bg-secondary);
+  padding: 1.5rem;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--surface-border);
+  animation: modalIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.gallery-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 10;
+  background: rgba(0,0,0,0.5);
+  color: white;
+  border-radius: 50%;
+}
+
+.gallery-close:hover {
+  background: var(--danger);
+}
+
+.gallery-image-container {
+  width: 100%;
+  height: 60vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  margin-bottom: 1.5rem;
+  background: var(--bg-input);
+}
+
+.gallery-image-container img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.gallery-controls {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.gallery-counter {
+  font-weight: 600;
+  color: var(--text-primary);
+  min-width: 3rem;
+  text-align: center;
+}
+
+.gallery-actions {
+  display: flex;
+  justify-content: center;
+  width: 100%;
 }
 
 /* ========================================

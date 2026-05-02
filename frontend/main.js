@@ -6,11 +6,17 @@ const API_BASE = '/api';
 let token = localStorage.getItem('fw_token');
 let currentUser = null;
 let selectedFiles = [];
+let loadedEntries = [];
+
+let selectedColors = [];
+let selectedSizes = [];
+let editingEntryId = null;
 
 // ========================================
 // Built-in defaults for smart dropdowns
 // ========================================
 const BUILT_IN = {
+  category: ['Shoes', 'Sandals', 'Boots', 'Slippers', 'Loafers'],
   color: [
     'Black', 'White', 'Grey', 'Navy Blue', 'Red', 'Blue', 'Brown',
     'Beige', 'Tan', 'Olive', 'Green', 'Yellow', 'Orange', 'Pink',
@@ -27,14 +33,6 @@ const BUILT_IN = {
     'Rubber', 'EVA Foam', 'TPU', 'Knit / Flyknit', 'Neoprene',
     'Textile', 'Patent Leather', 'Cork', 'Jute', 'Velvet',
   ],
-};
-
-const subCategories = {
-  Shoes:    ['Sneakers', 'Sports / Running', 'Casual', 'Formal', 'Training', 'Basketball', 'Skate', 'Tennis', 'Hiking', 'Oxford', 'Derby'],
-  Sandals:  ['Casual Sandals', 'Sports Sandals', 'Flip Flops', 'Slides', 'Gladiator', 'Wedge', 'Platform', 'T-Strap'],
-  Boots:    ['Ankle Boots', 'Chelsea Boots', 'Combat Boots', 'Hiking Boots', 'Rain Boots', 'Work Boots', 'Cowboy Boots', 'Knee-High Boots'],
-  Slippers: ['Indoor Slippers', 'Outdoor Slippers', 'Moccasin Slippers', 'Flip Flop Slippers', 'Memory Foam Slippers'],
-  Loafers:  ['Penny Loafers', 'Tassel Loafers', 'Driving Loafers', 'Boat Shoes', 'Moccasins', 'Horsebit Loafers'],
 };
 
 // ========================================
@@ -168,9 +166,11 @@ async function loadEntries() {
     emptyState.classList.add('hidden');
     entryCount.textContent = `${entries.length} entr${entries.length === 1 ? 'y' : 'ies'}`;
 
+    loadedEntries = entries;
+
     grid.innerHTML = entries.map((entry, i) => `
       <div class="entry-card" style="animation-delay:${i * 0.05}s">
-        <div class="entry-card-image">
+        <div class="entry-card-image" ${entry.images?.length ? `onclick="openGallery('${entry._id}')"` : ''}>
           ${entry.images?.length
             ? `<img src="${entry.images[0]}" alt="${entry.brand} ${entry.modelNumber}" loading="lazy" />`
             : `<div class="no-image">
@@ -191,20 +191,27 @@ async function loadEntries() {
             <span class="entry-tag category">${entry.category}</span>
             <span class="entry-tag">${entry.subCategory}</span>
             <span class="entry-tag gender">${entry.gender}</span>
-            ${entry.color ? `<span class="entry-tag">${entry.color}</span>` : ''}
-            ${entry.size ? `<span class="entry-tag">Size: ${entry.size}</span>` : ''}
+            ${entry.color && entry.color.length ? entry.color.map(c => `<span class="entry-tag">${c}</span>`).join('') : ''}
+            ${entry.size && entry.size.length ? entry.size.map(s => `<span class="entry-tag">Size: ${s}</span>`).join('') : ''}
           </div>
           ${entry.material ? `<div class="entry-meta">Material: ${entry.material}</div>` : ''}
           ${entry.description ? `<div class="entry-meta entry-desc">${entry.description}</div>` : ''}
           ${currentUser.isAdmin && entry.addedBy ? `<div class="entry-meta author-meta">Added by: ${entry.addedBy.name}</div>` : ''}
           <div class="entry-card-footer">
             <span class="entry-date">${new Date(entry.createdAt).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' })}</span>
-            <button class="entry-delete-btn" onclick="deleteEntry('${entry._id}')" title="Delete">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="3 6 5 6 21 6"/>
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-              </svg>
-            </button>
+            <div class="entry-actions">
+              <button class="entry-edit-btn" onclick="editEntry('${entry._id}')" title="Edit">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+                </svg>
+              </button>
+              <button class="entry-delete-btn" onclick="deleteEntry('${entry._id}')" title="Delete">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="3 6 5 6 21 6"/>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -226,6 +233,83 @@ window.deleteEntry = async function (id) {
 };
 
 // ========================================
+// Image Gallery
+// ========================================
+let currentGalleryImages = [];
+let currentGalleryIndex = 0;
+
+window.openGallery = function(entryId) {
+  const entry = loadedEntries.find(e => e._id === entryId);
+  if (!entry || !entry.images || entry.images.length === 0) return;
+  
+  currentGalleryImages = entry.images;
+  currentGalleryIndex = 0;
+  
+  document.getElementById('gallery-modal').classList.remove('hidden');
+  updateGalleryView();
+};
+
+window.closeGalleryModal = function() {
+  document.getElementById('gallery-modal').classList.add('hidden');
+  currentGalleryImages = [];
+};
+
+window.handleGalleryOverlayClick = function(e) {
+  if (e.target.id === 'gallery-modal') closeGalleryModal();
+};
+
+function updateGalleryView() {
+  const img = document.getElementById('gallery-current-image');
+  img.src = currentGalleryImages[currentGalleryIndex];
+  
+  document.getElementById('gallery-counter').textContent = `${currentGalleryIndex + 1} / ${currentGalleryImages.length}`;
+  
+  document.getElementById('gallery-prev-btn').disabled = currentGalleryImages.length <= 1;
+  document.getElementById('gallery-next-btn').disabled = currentGalleryImages.length <= 1;
+  
+  document.getElementById('gallery-prev-btn').style.opacity = currentGalleryImages.length <= 1 ? '0.3' : '1';
+  document.getElementById('gallery-next-btn').style.opacity = currentGalleryImages.length <= 1 ? '0.3' : '1';
+}
+
+window.prevGalleryImage = function() {
+  if (currentGalleryImages.length <= 1) return;
+  currentGalleryIndex = (currentGalleryIndex - 1 + currentGalleryImages.length) % currentGalleryImages.length;
+  updateGalleryView();
+};
+
+window.nextGalleryImage = function() {
+  if (currentGalleryImages.length <= 1) return;
+  currentGalleryIndex = (currentGalleryIndex + 1) % currentGalleryImages.length;
+  updateGalleryView();
+};
+
+window.downloadGalleryImage = async function() {
+  const url = currentGalleryImages[currentGalleryIndex];
+  if (!url) return;
+  
+  try {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    const blobUrl = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = blobUrl;
+    
+    // Extract filename from URL or use a default
+    const filename = url.substring(url.lastIndexOf('/') + 1) || 'image.jpg';
+    a.download = filename;
+    
+    document.body.appendChild(a);
+    a.click();
+    
+    window.URL.revokeObjectURL(blobUrl);
+    document.body.removeChild(a);
+  } catch (err) {
+    showToast('Error downloading image', 'error');
+  }
+};
+
+// ========================================
 // Smart Dropdown Builder
 // ========================================
 // Builds <select> with 3 groups:
@@ -234,6 +318,7 @@ window.deleteEntry = async function (id) {
 //   3. A separator option at top if both exist
 async function buildSmartSelect(field, selectId, customValues) {
   const el = document.getElementById(selectId);
+  if (!el) return;
   const placeholder = el.options[0]; // preserve placeholder
 
   // Collect custom values for this field
@@ -355,52 +440,120 @@ document.addEventListener('keydown', function (e) {
 });
 
 // ========================================
-// Sub-Categories
+// Tag UI Logic
 // ========================================
-window.updateSubCategories = function () {
-  const category = document.getElementById('fw-category').value;
-  const sub = document.getElementById('fw-subCategory');
-  sub.innerHTML = '<option value="">Select Sub-Category</option>';
-  if (category && subCategories[category]) {
-    subCategories[category].forEach(s => {
-      const opt = document.createElement('option');
-      opt.value = s; opt.textContent = s;
-      sub.appendChild(opt);
-    });
+function renderTags(field, arr) {
+  const container = document.getElementById(`selected-${field}s`);
+  if (!container) return;
+  container.innerHTML = arr.map(val => `
+    <div class="selected-tag">
+      ${val}
+      <button type="button" onclick="remove${field === 'color' ? 'Color' : 'Size'}('${val}')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+  `).join('');
+}
+
+window.addColorFromSelect = function() {
+  const select = document.getElementById('fw-color');
+  const val = select.value;
+  if (val && !selectedColors.includes(val)) {
+    selectedColors.push(val);
+    renderTags('color', selectedColors);
   }
+  select.value = '';
+};
+
+window.removeColor = function(val) {
+  selectedColors = selectedColors.filter(c => c !== val);
+  renderTags('color', selectedColors);
+};
+
+window.addSizeFromSelect = function() {
+  const select = document.getElementById('fw-size');
+  const val = select.value;
+  if (val && !selectedSizes.includes(val)) {
+    selectedSizes.push(val);
+    renderTags('size', selectedSizes);
+  }
+  select.value = '';
+};
+
+window.removeSize = function(val) {
+  selectedSizes = selectedSizes.filter(s => s !== val);
+  renderTags('size', selectedSizes);
 };
 
 // ========================================
 // Form Modal
 // ========================================
 window.openFormModal = async function () {
+  editingEntryId = null;
   document.getElementById('form-modal').classList.remove('hidden');
   document.getElementById('footwear-form').reset();
   document.getElementById('image-previews').innerHTML = '';
   document.getElementById('form-error').classList.add('hidden');
-  document.getElementById('fw-subCategory').innerHTML = '<option value="">Select category first</option>';
+  document.querySelector('#form-modal h2').textContent = 'Add Footwear Entry';
+  
   selectedFiles = [];
+  selectedColors = [];
+  selectedSizes = [];
+  renderTags('color', selectedColors);
+  renderTags('size', selectedSizes);
 
   // Reset all custom input boxes
-  ['brand', 'color', 'size', 'material'].forEach(f => {
+  ['brand', 'category', 'color', 'size', 'material', 'subCategory'].forEach(f => {
     document.getElementById(`custom-input-${f}`)?.classList.add('hidden');
     const inp = document.getElementById(`custom-val-${f}`);
     if (inp) inp.value = '';
   });
 
-  // Load brand dropdown
-  await buildBrandSelect();
-
-  // Load color, size, material from DB + built-ins
-  const [colors, sizes, materials] = await Promise.all([
-    api('/options/color').catch(() => []),
-    api('/options/size').catch(() => []),
-    api('/options/material').catch(() => []),
+  // Load dropdowns from DB
+  await Promise.all([
+    buildBrandSelect(),
+    api('/options/category').then(c => buildSmartSelect('category', 'fw-category', c)).catch(()=>{}),
+    api('/options/color').then(c => buildSmartSelect('color', 'fw-color', c)).catch(()=>{}),
+    api('/options/size').then(s => buildSmartSelect('size', 'fw-size', s)).catch(()=>{}),
+    api('/options/material').then(m => buildSmartSelect('material', 'fw-material', m)).catch(()=>{}),
+    api('/options/subCategory').then(s => buildSmartSelect('subCategory', 'fw-subCategory', s)).catch(()=>{}),
   ]);
+};
 
-  await buildSmartSelect('color', 'fw-color', colors);
-  await buildSmartSelect('size', 'fw-size', sizes);
-  await buildSmartSelect('material', 'fw-material', materials);
+window.editEntry = async function(id) {
+  const entry = loadedEntries.find(e => e._id === id);
+  if (!entry) return;
+  
+  await openFormModal();
+  editingEntryId = id;
+  document.querySelector('#form-modal h2').textContent = 'Edit Footwear Entry';
+  
+  document.getElementById('fw-modelNumber').value = entry.modelNumber || '';
+  document.getElementById('fw-brand').value = entry.brand || '';
+  document.getElementById('fw-category').value = entry.category || '';
+  document.getElementById('fw-subCategory').value = entry.subCategory || '';
+  document.getElementById('fw-gender').value = entry.gender || '';
+  document.getElementById('fw-price').value = entry.price || '';
+  document.getElementById('fw-material').value = entry.material || '';
+  document.getElementById('fw-description').value = entry.description || '';
+  
+  selectedColors = entry.color || [];
+  selectedSizes = entry.size || [];
+  renderTags('color', selectedColors);
+  renderTags('size', selectedSizes);
+  
+  // Show existing images in preview
+  const container = document.getElementById('image-previews');
+  if (entry.images && entry.images.length > 0) {
+    entry.images.forEach((imgUrl, idx) => {
+      // In edit mode, we'll replace all if they upload new ones, but let's just visually show them for now
+      // A complete image management logic for editing is complex. We'll add a note that uploading new images replaces old ones.
+      const div = document.createElement('div');
+      div.className = 'image-preview';
+      div.innerHTML = `<img src="${imgUrl}" alt="Existing" />`;
+      container.appendChild(div);
+    });
+  }
 };
 
 window.closeFormModal = function () {
@@ -470,16 +623,25 @@ window.handleFootwearSubmit = async function (e) {
     formData.append('category', document.getElementById('fw-category').value);
     formData.append('subCategory', document.getElementById('fw-subCategory').value);
     formData.append('gender', document.getElementById('fw-gender').value);
-    formData.append('color', document.getElementById('fw-color').value);
+    formData.append('color', JSON.stringify(selectedColors));
     formData.append('price', document.getElementById('fw-price').value);
-    formData.append('size', document.getElementById('fw-size').value);
+    formData.append('size', JSON.stringify(selectedSizes));
     formData.append('material', document.getElementById('fw-material').value);
     formData.append('description', document.getElementById('fw-description').value.trim());
 
+    if (editingEntryId && selectedFiles.filter(Boolean).length > 0) {
+      formData.append('replaceImages', 'true');
+    }
     selectedFiles.forEach(f => { if (f) formData.append('images', f); });
 
-    await api('/footwear', { method: 'POST', body: formData });
-    showToast('✅ Footwear entry saved!', 'success');
+    if (editingEntryId) {
+      await api(`/footwear/${editingEntryId}`, { method: 'PUT', body: formData });
+      showToast('✅ Footwear entry updated!', 'success');
+    } else {
+      await api('/footwear', { method: 'POST', body: formData });
+      showToast('✅ Footwear entry saved!', 'success');
+    }
+    
     closeFormModal();
     loadEntries();
   } catch (err) {

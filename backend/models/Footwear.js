@@ -24,22 +24,21 @@ const footwearSchema = new mongoose.Schema({
   gender: {
     type: String,
     required: [true, 'Gender is required'],
-    enum: ['Men', 'Women', 'Unisex', 'Kids'],
+    enum: ['Men', 'Women', 'Unisex', 'Girl', 'Boy'],
   },
-  color: {
+  color: [{
     type: String,
-    required: [true, 'Color is required'],
     trim: true,
-  },
+  }],
   price: {
     type: Number,
     required: [true, 'Price is required'],
     min: 0,
   },
-  size: {
+  size: [{
     type: String,
     trim: true,
-  },
+  }],
   material: {
     type: String,
     trim: true,

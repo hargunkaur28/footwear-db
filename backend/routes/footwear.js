@@ -53,9 +53,9 @@ router.post('/', auth, (req, res, next) => {
       category:    req.body.category,
       subCategory: req.body.subCategory,
       gender:      req.body.gender,
-      color:       req.body.color,
+      color:       req.body.color ? JSON.parse(req.body.color) : [],
       price:       Number(req.body.price),
-      size:        req.body.size        || undefined,
+      size:        req.body.size ? JSON.parse(req.body.size) : [],
       material:    req.body.material    || undefined,
       description: req.body.description || undefined,
       images,
@@ -73,6 +73,50 @@ router.post('/', auth, (req, res, next) => {
   }
 });
 
+// PUT /api/footwear/:id - Update footwear entry
+router.put('/:id', auth, (req, res, next) => {
+  upload.array('images', 5)(req, res, (err) => {
+    if (err) return res.status(400).json({ message: err.message });
+    next();
+  });
+}, async (req, res) => {
+  try {
+    const query = { _id: req.params.id };
+    if (!req.user.isAdmin) query.addedBy = req.user._id;
+
+    let footwear = await Footwear.findOne(query);
+    if (!footwear) return res.status(404).json({ message: 'Footwear not found or unauthorized' });
+
+    // Handle images: keep existing or add new
+    let images = footwear.images;
+    if (req.body.replaceImages === 'true' && req.files) {
+      images = req.files.map(f => `/uploads/${f.filename}`);
+    } else if (req.files && req.files.length > 0) {
+      images = [...images, ...req.files.map(f => `/uploads/${f.filename}`)];
+    }
+
+    footwear.modelNumber = req.body.modelNumber || footwear.modelNumber;
+    footwear.brand = req.body.brand || footwear.brand;
+    footwear.category = req.body.category || footwear.category;
+    footwear.subCategory = req.body.subCategory || footwear.subCategory;
+    footwear.gender = req.body.gender || footwear.gender;
+    footwear.color = req.body.color ? JSON.parse(req.body.color) : footwear.color;
+    footwear.price = req.body.price ? Number(req.body.price) : footwear.price;
+    footwear.size = req.body.size ? JSON.parse(req.body.size) : footwear.size;
+    footwear.material = req.body.material || footwear.material;
+    footwear.description = req.body.description || footwear.description;
+    footwear.images = images;
+
+    await footwear.save();
+    res.json(footwear);
+  } catch (error) {
+    if (error.name === 'ValidationError') {
+      const msg = Object.values(error.errors).map(e => e.message).join(', ');
+      return res.status(400).json({ message: msg });
+    }
+    res.status(500).json({ message: error.message });
+  }
+});
 
 // GET /api/footwear - Get all footwear entries
 router.get('/', auth, async (req, res) => {

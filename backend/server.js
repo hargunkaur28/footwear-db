@@ -9,7 +9,7 @@ const authRoutes = require('./routes/auth');
 const footwearRoutes = require('./routes/footwear');
 const brandRoutes = require('./routes/brands');
 const optionsRoutes = require('./routes/options');
-const { seedDefaultBrands } = require('./seed');
+const Brand = require('./models/Brand');
 
 const app = express();
 
@@ -51,8 +51,8 @@ mongoose
   .then(async () => {
     console.log('✅ Connected to MongoDB Atlas');
 
-    // Seed default brands on first run
-    await seedDefaultBrands();
+    // Scrap existing built-in brands as requested by user
+    await Brand.deleteMany({ isCustom: false });
 
     const server = app.listen(PORT, () => {
       console.log(`🚀 Server running on http://localhost:${PORT}`);
